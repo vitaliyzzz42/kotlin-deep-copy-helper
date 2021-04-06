@@ -10,6 +10,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.math.BigDecimal
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 internal class DeepCopyHelperTest {
 
@@ -280,7 +284,31 @@ internal class DeepCopyHelperTest {
                 it.message shouldBe "Bad index in propertyPath"
             }
         }
+
+        @Test
+        fun `bug - zoned time and decimals`() {
+            val initial = HasTimeAndDecimals(
+                id = "123",
+                time = OffsetDateTime.of(
+                    LocalDateTime.of(2021, 4, 6, 10, 0, 0),
+                    ZoneOffset.ofHours(3)
+                ),
+                value = "10".toBigDecimal()
+            )
+
+            val actual: HasTimeAndDecimals = initial.deepCopy("id", "111")
+
+            val expected = initial.copy(id = "111")
+
+            actual shouldBe expected
+        }
     }
+
+    data class HasTimeAndDecimals(
+        val id: String,
+        val time: OffsetDateTime,
+        val value: BigDecimal
+    )
 
     private data class Order(
         val id: String,
